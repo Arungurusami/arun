@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TNEB  BILL CALCULTOR</title>
+
+<style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url('image1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        nav {
+            background-color: black;
+            padding: 10px 0;
+            text-align: center;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        nav img {
+            
+            height: 40px;
+            margin-right: 20px;
+        }
+
+        nav h1 {
+            color: white;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            width: 350px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+        }
+
+        .display {
+            grid-column: span 4;
+            height: 80px;
+            padding: 15px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 5px;
+            border: 1px solid #34495e;
+            text-align: right;
+            font-size: 24px;
+            line-height: 60px;
+            overflow: hidden;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .operator {
+            background-color: #e74c3c;
+        }
+
+        .operator:hover {
+            background-color: #c0392b;
+        }
+
+        .result {
+            grid-column: span 4;
+            text-align: center;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-top: 10px;
+        }
+
+        .start-next {
+            display: grid;
+            grid-template-rows: repeat(2, 1fr);
+            grid-gap: 10px;
+        }
+
+        .history-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border: 1px solid #bdc3c7;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 600px;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .history-modal.active {
+            display: block;
+        }
+
+        .history-modal .close {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            float: right;
+            border-radius: 5px;
+        }
+
+        .history-modal .close:hover {
+            background-color: #c0392b;
+        }
+
+        .history-modal h2 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+
+        .history-modal pre {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            color: #34495e;
+        }
+        p
+        {
+            color: white;
+            font-size: 30px;
+            background-color: black;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container2">
+        <nav>
+            <ul>
+                <center><h1>TNEB Bill Calculator</h1></center>
+                <center><h1> By G. Arun  & R.Gnanasudhan kumar</h1></center>
+                <center><h1> Revised on 01.07.2024</h1></center>
+                
+            </ul>
+        </nav>
+    <div class="container">
+        <div class="calculator">
+            <div id="display" class="display">Enter Previous Unit</div>
+            <button onclick="clearDisplay()">C</button>
+            <button onclick="appendToDisplay('/')">/</button>
+            <button onclick="appendToDisplay('*')">*</button>
+            <button onclick="appendToDisplay('-')">-</button>
+            <button onclick="appendToDisplay('7')">7</button>
+            <button onclick="appendToDisplay('8')">8</button>
+            <button onclick="appendToDisplay('9')">9</button>
+            <button onclick="appendToDisplay('+')">+</button>
+            <button onclick="appendToDisplay('4')">4</button>
+            <button onclick="appendToDisplay('5')">5</button>
+            <button onclick="appendToDisplay('6')">6</button>
+            <div class="start-next">
+                <button class="operator" onclick="startCalculate()">Start</button>
+                <button class="operator" onclick="showPreviousUnits()">Next</button>
+                <button class="operator" onclick="showBillHistory()">View Bill Details</button>
+            </div>
+            <button onclick="appendToDisplay('1')">1</button>
+            <button onclick="appendToDisplay('2')">2</button>
+            <button onclick="appendToDisplay('3')">3</button>
+            <button rowspan="2" onclick="appendToDisplay('0')" style="grid-column: span 2;">0</button>
+            <button onclick="appendToDisplay('.')">.</button>
+            <button class="operator" onclick="calculateConsumedUnits()">Calculate</button>
+        </div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <div id="history-modal" class="history-modal">
+        <button class="close" onclick="closeHistoryModal()">X</button>
+        <h2>Bill Calculation Formula</h2>
+        <pre id="formula"></pre>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let result = document.getElementById('result');
+        let previousUnit = null;
+        let isPreviousUnitSet = false;
+        let currentUnits = 0; 
+        let historyFormula = ''; 
+
+        function startCalculate() 
+        {
+            display.innerText = 'Enter Previous Unit';
+            result.innerText = '';
+            previousUnit = null;
+            isPreviousUnitSet = false;
+        }
+
+        function appendToDisplay(value) 
+        {
+            if (display.innerText === 'Enter Previous Unit' || display.innerText === 'Enter Current Unit') {
+                display.innerText = value;
+            } 
+            else 
+            {
+                display.innerText += value;
+            }
+        }
+
+        function clearDisplay() 
+        {
+            display.innerText = 'Enter Previous Unit';
+            result.innerText = '';
+            previousUnit = null;
+            isPreviousUnitSet = false;
+            currentUnits = 0;
+        }
+
+        function showPreviousUnits() 
+        {
+            if (!isPreviousUnitSet) 
+            {
+                previousUnit = parseFloat(display.innerText);
+                display.innerText = 'Enter Current Unit';
+                result.innerText = `Previous Unit: ${previousUnit}`;
+                isPreviousUnitSet = true;
+            } 
+            else 
+            {
+                let currentUnit = parseFloat(display.innerText);
+                currentUnits = currentUnit - previousUnit;
+                let { billAmount, formula } = calculateBill(currentUnits);
+                
+                result.innerText = `Consumed Units: ${currentUnits}\nTotal Bill: ₹${billAmount}`;
+                historyFormula = formula; 
+                previousUnit = null; 
+                isPreviousUnitSet = false;
+            }
+        }
+
+        function calculateConsumedUnits() 
+        {
+            if (previousUnit !== null && isPreviousUnitSet) 
+            {
+                let currentUnit = parseFloat(display.innerText);
+                currentUnits = currentUnit - previousUnit;
+                let { billAmount, formula } = calculateBill(currentUnits);
+                
+                result.innerText = `Previous Unit: ${previousUnit}\nCurrent Unit: ${currentUnit}\nConsumed Units: ${currentUnits}\nTotal Bill: ₹${billAmount}`;
+                historyFormula = formula; 
+                previousUnit = null; 
+                isPreviousUnitSet = false;
+            } 
+            else 
+            {
+                result.innerText = 'Please enter previous and current units.';
+            }
+        }
+
+        function calculateBill(units) 
+        {
+            if (units < 0) 
+            {
+                return { billAmount: "Invalid unit count.", formula: '' };
+            }
+
+            let billAmount = 0;
+            let formula = '';
+
+            if (units <= 100) 
+            {
+                billAmount = 0;
+                formula += '0\t  100\t\₹0\n';
+            } 
+            else if (units <= 200) 
+            {
+                billAmount = (units - 100) * 2.35;
+                formula += '101\t  200\t₹' + (units - 100) * 2.35 + '\n';
+            } 
+            else if (units <= 400) 
+            {
+                billAmount = (100 * 2.35) + (units - 200) * 4.70;
+                formula += '101\t  200\t₹' + (100 * 2.35) + '\n';
+                formula += '201\t  400\t₹' + (units - 200) * 4.70 + '\n';
+            } 
+            else if (units <= 500) 
+            {
+                billAmount = (100 * 2.35) + (200 * 4.70) + (units - 400) * 6.30;
+                formula += '101\t  200\t₹' + (100 * 2.35) + '\n';
+                formula += '201\t  400\t₹' + (200 * 4.70) + '\n';
+                formula += '401\t  500\t₹' + (units - 400) * 6.30 + '\n';
+            } 
+            else if (units <= 600) 
+            {
+                billAmount = (100 * 2.35) + (200 * 4.70) + (100 * 6.30) + (units - 500) * 8.40;
+                formula += '101\t  200\t₹' + (100 * 2.35) + '\n';
+                formula += '201\t  400\t₹' + (200 * 4.70) + '\n';
+                formula += '401\t  500\t₹' + (100 * 6.30) + '\n';
+                formula += '501\t  600\t₹' + (units - 500) * 8.40 + '\n';
+            } 
+            else if (units <= 800) 
+            {
+                billAmount = (100 * 2.35) + (200 * 4.70) + (100 * 6.30) + (100 * 8.40) + (units - 600) * 9.45;
+                formula += '101\t  200\t₹' + (100 * 2.35) + '\n';
+                formula += '201\t  400\t₹' + (200 * 4.70) + '\n';
+                formula += '401\t  500\t₹' + (100 * 6.30) + '\n';
+                formula += '501\t  600\t₹' + (100 * 8.40) + '\n';
+                formula += '601\t  800\t₹' + (units - 600) * 9.45 + '\n';
+            } 
+            else if (units <= 1000) 
+            {
+                billAmount = (100 * 2.35) + (200 * 4.70) + (100 * 6.30) + (100 * 8.40) + (200 * 9.45) + (units - 800) * 10.50;
+                formula += '101\t  200\t₹' + (100 * 2.35) + '\n';
+                formula += '201\t  400\t₹' + (200 * 4.70) + '\n';
+                formula += '401\t  500\t₹' + (100 * 6.30) + '\n';
+                formula += '501\t  600\t₹' + (100 * 8.40) + '\n';
+                formula += '601\t  800\t₹' + (200 * 9.45) + '\n';
+                formula += '801\t  1000\t₹' + (units - 800) * 10.50 + '\n';
+            } 
+            else 
+            {
+                billAmount = (100 * 2.35) + (200 * 4.70) + (100 * 6.30) + (100 * 8.40) + (200 * 9.45) + (200 * 10.50) + (units - 1000) * 11.55;
+                formula += '101\t  200\t₹' + (100 * 2.35) + '\n';
+                formula += '201\t  400\t₹' + (200 * 4.70) + '\n';
+                formula += '401\t  500\t₹' + (100 * 6.30) + '\n';
+                formula += '501\t  600\t₹' + (100 * 8.40) + '\n';
+                formula += '601\t  800\t₹' + (200 * 9.45) + '\n';
+                formula += '801\t  1000\t₹' + (200 * 10.50) + '\n';
+                formula += '1001 and above\t₹' + (units - 1000) * 11.55 + '\n';
+            }
+
+            return { billAmount: billAmount.toFixed(2), formula };
+        }
+
+        function showBillHistory() 
+        {
+            document.getElementById('formula').textContent = `Unit\tRange\tCost\n${historyFormula}`;
+            document.getElementById('history-modal').classList.add('active');
+        }
+
+        function closeHistoryModal() 
+        {
+            document.getElementById('history-modal').classList.remove('active');
+        }
+    </script>
+   <center>
+   <button onclick="window.location.href='index.html'">Home</button></center>
+    <p>Copyrights  All Rights Reserved</p>
+</body>
+</html>
